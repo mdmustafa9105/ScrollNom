@@ -50,6 +50,14 @@ export const NommlyPage = () => {
 
   const currentReel = videos[activeVideoIndex] || videos[0];
 
+  // Handle HTML5 Video autoplay & source reload on slide change
+  useEffect(() => {
+    if (videoRef.current && currentReel?.videoUrl) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [currentReel?.videoUrl, activeVideoIndex]);
+
   // Record View Event on Reel View
   useEffect(() => {
     if (!currentReel || !user.isLoggedIn) return;
@@ -231,7 +239,7 @@ export const NommlyPage = () => {
             {/* Creator / Owner Bar */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div
-                onClick={() => setSelectedUserModal(currentReel.creatorName.toLowerCase().replace(/\s+/g, ''))}
+                onClick={() => setSelectedUserModal(currentReel.ownerUsername || currentReel.creatorHandle?.replace('@', '') || currentReel.creatorName?.toLowerCase().replace(/\s+/g, ''))}
                 className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
               >
                 <img
@@ -274,6 +282,68 @@ export const NommlyPage = () => {
               </p>
             </div>
 
+            {/* Multi-Dish Tag Chips Section */}
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <h5 className="text-xs font-bold uppercase tracking-wider text-white/60">DISHES IN THIS VIDEO</h5>
+              <div className="flex flex-wrap gap-2">
+                {(currentReel.taggedDishes && currentReel.taggedDishes.length > 0 ? currentReel.taggedDishes : [
+                  { dishId: currentReel.dishId || 'd1', name: currentReel.title || 'Special Dish', price: currentReel.dishPrice || 380, dietType: currentReel.diet === 'vegetarian' ? 'VEG' : 'NON_VEG', category: currentReel.category || 'MAIN_FOOD' }
+                ]).map((dish, idx) => {
+                  const dietType = dish.dietType || (currentReel.diet === 'vegetarian' ? 'VEG' : 'NON_VEG');
+                  const isVeg = dietType === 'VEG' || dietType === 'VEGAN';
+                  const isNonVeg = dietType === 'NON_VEG';
+                  const isEgg = dietType === 'EGG';
+
+                  return (
+                    <div key={dish.dishId || idx} className="bg-white/10 hover:bg-white/20 transition-all rounded-xl p-3 border border-white/15 flex items-center justify-between w-full">
+                      <div className="flex items-center space-x-2.5">
+                        <span className={`w-4 h-4 rounded-sm border flex items-center justify-center text-[10px] font-bold ${
+                          isVeg ? 'border-emerald-500 text-emerald-400 bg-emerald-950/50' :
+                          isNonVeg ? 'border-red-500 text-red-400 bg-red-950/50' :
+                          isEgg ? 'border-amber-500 text-amber-400 bg-amber-950/50' : 'border-gray-400 text-gray-300'
+                        }`}>
+                          {isVeg ? '●' : isNonVeg ? '▲' : isEgg ? 'E' : '?'}
+                        </span>
+                        <div>
+                          <p className="text-sm font-bold text-white leading-snug">{dish.name}</p>
+                          <div className="flex items-center space-x-2 text-[10px] text-white/70">
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded font-mono uppercase">{dish.category || 'FOOD'}</span>
+                            {dish.discountPercent > 0 && (
+                              <span className="bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold border border-emerald-500/40">
+                                {dish.discountPercent}% OFF ({dish.promoCode || 'OFFER'})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm font-black text-brand-coral">₹{dish.price}</span>
+                        <button
+                          onClick={() => {
+                            addToCart({
+                              dishId: dish.dishId || currentReel.dishId,
+                              id: currentReel.id,
+                              title: dish.name,
+                              name: dish.name,
+                              dishPrice: dish.price,
+                              price: dish.price,
+                              restaurantName: currentReel.restaurantName,
+                              image: currentReel.posterUrl
+                            });
+                            showToast(`Added ${dish.name} to Cart! 🛒`);
+                          }}
+                          className="px-3 py-1.5 bg-brand-coral hover:bg-brand-coral-hover text-white text-xs font-bold rounded-lg transition-all"
+                        >
+                          + ADD
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Interactive Stats Bar */}
             <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
               <button
@@ -303,7 +373,7 @@ export const NommlyPage = () => {
           <div className="pt-6 border-t border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-white/60 font-medium">Single Dish Price</p>
+                <p className="text-xs text-white/60 font-medium">Primary Dish Price</p>
                 <p className="text-2xl font-extrabold text-brand-coral">₹{currentReel.dishPrice}</p>
               </div>
 
@@ -312,7 +382,7 @@ export const NommlyPage = () => {
                 className="px-6 py-3.5 bg-brand-coral text-white font-extrabold text-sm rounded-2xl shadow-coral hover:bg-brand-coral-hover transition-all flex items-center space-x-2"
               >
                 <ShoppingBag className="w-5 h-5" />
-                <span>ORDER THIS DISH NOW →</span>
+                <span>ORDER DISH NOW →</span>
               </button>
             </div>
           </div>

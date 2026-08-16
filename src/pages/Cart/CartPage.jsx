@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { triggerRazorpayCheckout } from '../../services/razorpayService';
 import { ShoppingBag, ArrowLeft, Trash2, Plus, Minus, Users, CheckCircle2, ShieldCheck, AlertCircle, RefreshCw, XCircle, Bike, Navigation } from 'lucide-react';
 import { LiveTrackingModal } from '../../components/delivery/LiveTrackingModal';
+import { LiveOrderTrackingModal } from '../../components/orders/LiveOrderTrackingModal';
 
 export const CartPage = () => {
   const {
@@ -86,6 +87,12 @@ export const CartPage = () => {
         onSuccess: (paymentData) => {
           showToast(`Order Confirmed! ID: ${paymentData.orderId}`, 'success');
           
+          if (paymentData.deliveryId) {
+            setActiveDeliveryId(paymentData.deliveryId);
+          } else {
+            setActiveDeliveryId(paymentData.orderId);
+          }
+
           setConfirmedOrder({
             orderId: paymentData.orderId,
             deliveryId: paymentData.deliveryId,
@@ -206,8 +213,17 @@ export const CartPage = () => {
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
-              onClick={() => setShowTrackingModal(true)}
-              className="flex-1 py-3.5 bg-brand-coral text-white font-extrabold text-sm rounded-2xl shadow-coral hover:bg-brand-coral-hover transition-all flex items-center justify-center space-x-2"
+              id="track-order-live-btn"
+              onClick={() => {
+                const targetId = confirmedOrder?.deliveryId || activeDeliveryId || confirmedOrder?.orderId;
+                if (targetId) {
+                  setActiveDeliveryId(targetId);
+                  setShowTrackingModal(true);
+                } else {
+                  showToast('Order tracking details loading...', 'info');
+                }
+              }}
+              className="flex-1 py-3.5 bg-brand-coral text-white font-extrabold text-sm rounded-2xl shadow-coral hover:bg-brand-coral-hover transition-all flex items-center justify-center space-x-2 cursor-pointer z-10"
             >
               <Navigation className="w-5 h-5" />
               <span>TRACK ORDER LIVE 🛵</span>
@@ -434,9 +450,10 @@ export const CartPage = () => {
       )}
 
       {/* LIVE TRACKING MODAL */}
-      {showTrackingModal && activeDeliveryId && (
-        <LiveTrackingModal
-          deliveryId={activeDeliveryId}
+      {showTrackingModal && (
+        <LiveOrderTrackingModal
+          orderId={confirmedOrder?.orderId}
+          deliveryId={confirmedOrder?.deliveryId || activeDeliveryId}
           isOpen={showTrackingModal}
           onClose={() => setShowTrackingModal(false)}
         />

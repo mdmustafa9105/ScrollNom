@@ -6,8 +6,47 @@ import { PromoteRestaurantModal } from './PromoteRestaurantModal';
 export const PublicRestaurantProfileModal = ({ restaurant, isOpen, onClose }) => {
   const { user } = useApp();
   const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [dietFilter, setDietFilter] = useState('ALL'); // 'ALL' | 'VEG' | 'NON_VEG'
+  const [menuItems, setMenuItems] = useState([]);
+
+  useEffect(() => {
+    if (!restaurant?.id) return;
+
+    // Fetch canonical menu items from database
+    fetch(`${API_BASE}/restaurants/${restaurant.id}/menu`)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data?.menu) {
+          setMenuItems(json.data.menu);
+        } else {
+          // Default fallback menu graph
+          setMenuItems([
+            { id: 'd1_1', name: 'Hyderabadi Dum Biryani', category: 'MAIN_FOOD', diet_type: 'NON_VEG', price: 380, discount_percent: 50, promo_code: 'SCROLL50' },
+            { id: 'd1_2', name: 'Special Mutton Biryani', category: 'MAIN_FOOD', diet_type: 'NON_VEG', price: 450, discount_percent: 50, promo_code: 'SCROLL50' },
+            { id: 'd1_3', name: 'Royal Paneer Biryani', category: 'MAIN_FOOD', diet_type: 'VEG', price: 290 },
+            { id: 'd1_4', name: 'Chicken 65', category: 'SNACK', diet_type: 'NON_VEG', price: 260 },
+            { id: 'd1_5', name: 'Chilled Cold Coffee', category: 'BEVERAGE', diet_type: 'VEG', price: 150 },
+            { id: 'd1_6', name: 'Butter Garlic Naan', category: 'MAIN_FOOD', diet_type: 'VEG', price: 60 }
+          ]);
+        }
+      })
+      .catch(() => {
+        setMenuItems([
+          { id: 'd1_1', name: 'Hyderabadi Dum Biryani', category: 'MAIN_FOOD', diet_type: 'NON_VEG', price: 380, discount_percent: 50, promo_code: 'SCROLL50' },
+          { id: 'd1_3', name: 'Royal Paneer Biryani', category: 'MAIN_FOOD', diet_type: 'VEG', price: 290 },
+          { id: 'd1_5', name: 'Chilled Cold Coffee', category: 'BEVERAGE', diet_type: 'VEG', price: 150 }
+        ]);
+      });
+  }, [restaurant?.id]);
 
   if (!isOpen || !restaurant) return null;
+
+  const filteredMenuItems = menuItems.filter(item => {
+    if (dietFilter === 'VEG') return item.diet_type === 'VEG' || item.diet_type === 'VEGAN';
+    if (dietFilter === 'NON_VEG') return item.diet_type === 'NON_VEG';
+    return true;
+  });
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 select-none">
@@ -87,31 +126,80 @@ export const PublicRestaurantProfileModal = ({ restaurant, isOpen, onClose }) =>
           </div>
         )}
 
-        {/* Popular Public Dishes */}
+        {/* Canonical Menu Specials with Real Diet Filtering */}
         <div className="space-y-3">
-          <h4 className="text-xs font-extrabold text-brand-charcoal uppercase tracking-wider flex items-center space-x-1.5">
-            <Utensils className="w-4 h-4 text-brand-coral" />
-            <span>Popular Menu Specials</span>
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-extrabold text-brand-charcoal uppercase tracking-wider flex items-center space-x-1.5">
+              <Utensils className="w-4 h-4 text-brand-coral" />
+              <span>Canonical Menu Graph</span>
+            </h4>
 
-          <div className="space-y-2">
-            <div className="bg-white p-3.5 rounded-2xl border border-brand-cream-dark flex items-center justify-between">
-              <div>
-                <h5 className="text-xs font-extrabold text-brand-charcoal">Hyderabadi Dum Biryani</h5>
-                <p className="text-[11px] text-brand-charcoal-muted">Aromatic Seeraga Samba rice with tender mutton</p>
-              </div>
-              <span className="text-xs font-black text-brand-coral">₹380</span>
-            </div>
-
-            <div className="bg-white p-3.5 rounded-2xl border border-brand-cream-dark flex items-center justify-between">
-              <div>
-                <h5 className="text-xs font-extrabold text-brand-charcoal">Crispy Benne Dosa</h5>
-                <p className="text-[11px] text-brand-charcoal-muted">Butter roasted dosa with coconut & spicy chutney</p>
-              </div>
-              <span className="text-xs font-black text-brand-coral">₹140</span>
+            <div className="flex items-center space-x-1 bg-white p-1 rounded-xl border border-brand-cream-dark">
+              <button
+                onClick={() => setDietFilter('ALL')}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg transition-all ${
+                  dietFilter === 'ALL' ? 'bg-brand-charcoal text-white shadow-xs' : 'text-brand-charcoal-muted hover:text-brand-charcoal'
+                }`}
+              >
+                ALL
+              </button>
+              <button
+                onClick={() => setDietFilter('VEG')}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg transition-all flex items-center space-x-1 ${
+                  dietFilter === 'VEG' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-700 hover:bg-emerald-50'
+                }`}
+              >
+                <span>🟢 VEG</span>
+              </button>
+              <button
+                onClick={() => setDietFilter('NON_VEG')}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg transition-all flex items-center space-x-1 ${
+                  dietFilter === 'NON_VEG' ? 'bg-red-600 text-white shadow-xs' : 'text-red-700 hover:bg-red-50'
+                }`}
+              >
+                <span>🔴 NON-VEG</span>
+              </button>
             </div>
           </div>
+
+          <div className="space-y-2">
+            {filteredMenuItems.length === 0 ? (
+              <div className="p-4 text-center text-xs text-brand-charcoal-muted font-medium bg-white rounded-2xl border border-brand-cream-dark">
+                No {dietFilter === 'VEG' ? 'Vegetarian' : 'Non-Vegetarian'} dishes available in this menu.
+              </div>
+            ) : (
+              filteredMenuItems.map(item => (
+                <div key={item.id} className="bg-white p-3.5 rounded-2xl border border-brand-cream-dark flex items-center justify-between hover:border-brand-coral/30 transition-all">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center text-[9px] font-bold ${
+                        item.diet_type === 'VEG' || item.diet_type === 'VEGAN'
+                          ? 'border-emerald-600 text-emerald-600 bg-emerald-50'
+                          : 'border-red-600 text-red-600 bg-red-50'
+                      }`}>
+                        {item.diet_type === 'VEG' || item.diet_type === 'VEGAN' ? '●' : '▲'}
+                      </span>
+                      <h5 className="text-xs font-extrabold text-brand-charcoal">{item.name}</h5>
+                      <span className="text-[9px] font-mono text-brand-charcoal-muted uppercase bg-brand-cream-card px-1.5 py-0.5 rounded">
+                        {item.category}
+                      </span>
+                      {item.discount_percent > 0 && (
+                        <span className="bg-emerald-100 text-emerald-700 border border-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                          {item.discount_percent}% OFF
+                        </span>
+                      )}
+                    </div>
+                    {item.description && (
+                      <p className="text-[11px] text-brand-charcoal-muted pl-5">{item.description}</p>
+                    )}
+                  </div>
+                  <span className="text-xs font-black text-brand-coral shrink-0 pl-3">₹{item.price}</span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
+
 
         {/* Promote Modal */}
         {showPromoteModal && (

@@ -11,20 +11,27 @@ export const createContent = async (ownerUid, data) => {
   const ownerName = owner.display_name;
   const ownerAvatar = owner.avatar_url;
 
+  const taggedDishes = data.taggedDishes || (data.dishId ? [{ dishId: data.dishId, name: data.dishTitle, price: data.dishPrice }] : []);
+  const firstDish = taggedDishes[0] || {};
+  const categories = data.categories || (firstDish.category ? [firstDish.category] : ['MAIN_FOOD']);
+  const timeBelts = data.timeBelts || ['AFTERNOON'];
+
   await dbRun(`
     INSERT INTO content (
       id, content_type, owner_id, owner_type, owner_name, owner_avatar,
-      dish_id, dish_title, dish_price, restaurant_name, media_url, poster_url, caption
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      restaurant_id, dish_id, dish_title, dish_price, restaurant_name, media_url, poster_url, caption,
+      tagged_dishes_json, food_categories_json, time_belts_json, analysis_status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')
   `, [
     contentId, contentType, owner.id, ownerType, ownerName, ownerAvatar,
-    data.dishId || null, data.dishTitle || 'ScrollNom Dish', data.dishPrice || 0,
+    data.restaurantId || 'r1', firstDish.dishId || data.dishId || null, firstDish.name || data.dishTitle || 'ScrollNom Dish', firstDish.price || data.dishPrice || 0,
     data.restaurantName || 'ScrollNom Partner', data.mediaUrl, data.posterUrl || data.mediaUrl,
-    data.caption || ''
+    data.caption || '', JSON.stringify(taggedDishes), JSON.stringify(categories), JSON.stringify(timeBelts)
   ]);
 
   return await dbGet('SELECT * FROM content WHERE id = ?', [contentId]);
 };
+
 
 // Like Content
 export const likeContent = async (userUid, contentId) => {
@@ -165,3 +172,109 @@ export const getUserContent = async (userUid) => {
     createdAt: r.created_at
   }));
 };
+
+const formatContentItem = async (r, currentUserId = null) => {
+  let isLiked = false;
+  let isSaved = false;
+
+  if (currentUserId) {
+    const likeRow = await dbGet('SELECT id FROM content_likes WHERE user_id = ? AND content_id = ?', [currentUserId, r.id]);
+    isLiked = !!likeRow;
+
+    const saveRow = await dbGet('SELECT id FROM content_saves WHERE user_id = ? AND content_id = ?', [currentUserId, r.id]);
+    isSaved = !!saveRow;
+  }
+
+  let taggedDishes = [];
+  let foodCategories = [];
+  let timeBelts = [];
+  try { taggedDishes = JSON.parse(r.tagged_dishes_json || '[]'); } catch (e) {}
+  try { foodCategories = JSON.parse(r.food_categories_json || '[]'); } catch (e) {}
+  try { timeBelts = JSON.parse(r.time_belts_json || '[]'); } catch (e) {}
+
+  if (taggedDishes.length === 0 && r.dish_id) {
+    taggedDishes = [{ dishId: r.dish_id, name: r.dish_title, price: r.dish_price }];
+  }
+
+  const ownerUser = await dbGet('SELECT username, display_name, avatar_url, is_creator FROM users WHERE id = ?', [r.owner_id]);
+  const ownerUsername = ownerUser?.username || (r.owner_name ? r.owner_name.toLowerCase().replace(/\s+/g, '') : 'creator');
+
+  return {
+    id: r.id,
+    contentType: r.content_type,
+    ownerId: r.owner_id,
+    ownerType: r.owner_type,
+    ownerName: ownerUser?.display_name || r.owner_name,
+    ownerUsername: ownerUsername,
+    creatorName: ownerUser?.display_name || r.owner_name,
+    creatorHandle: `@${ownerUsername}`,
+    creatorAvatar: ownerUser?.avatar_url || r.owner_avatar,
+    isVerifiedCreator: Boolean(ownerUser?.is_creator || r.owner_type === 'creator'),
+    restaurantId: r.restaurant_id || 'r1',
+    restaurantName: r.restaurant_name,
+    restaurantDistance: '2.0 km',
+    dishId: r.dish_id,
+    dishTitle: r.dish_title || r.caption,
+    title: r.caption || r.dish_title || 'Nommly Reel',
+    dishPrice: r.dish_price,
+    videoUrl: r.media_url,
+    mediaUrl: r.media_url,
+    posterUrl: r.poster_url || 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80',
+    caption: r.caption,
+    taggedDishes,
+    foodCategories,
+    categories: foodCategories,
+    timeBelts,
+    analysisStatus: r.analysis_status || 'confirmed',
+    likeCount: r.like_count,
+    likesCount: `${r.like_count || 0}`,
+    saveCount: r.save_count,
+    commentsCount: '12',
+    sharesCount: '5',
+    isLiked,
+    isSaved,
+    rating: 4.8,
+    createdAt: r.created_at
+  };
+};
+
+export const getPublicNommlyContent = async (userUid = null) => {
+  let currentUserId = null;
+  if (userUid) {
+    const user = await dbGet('SELECT id FROM users WHERE firebase_uid = ? OR id = ?', [userUid, userUid]);
+    currentUserId = user ? user.id : userUid;
+  }
+
+  const rows = await dbAll(`
+    SELECT c.*, u.username as owner_username
+    FROM content c
+    LEFT JOIN users u ON c.owner_id = u.id
+    WHERE c.content_type = 'nommly'
+    ORDER BY c.created_at DESC
+  `);
+
+  return await Promise.all(rows.map(r => formatContentItem(r, currentUserId)));
+};
+
+export const getCreatorContentByUsername = async (targetUsername, userUid = null) => {
+  let currentUserId = null;
+  if (userUid) {
+    const user = await dbGet('SELECT id FROM users WHERE firebase_uid = ? OR id = ?', [userUid, userUid]);
+    currentUserId = user ? user.id : userUid;
+  }
+
+  const cleanUsername = targetUsername.trim().toLowerCase();
+  const creatorUser = await dbGet('SELECT id FROM users WHERE LOWER(username) = ?', [cleanUsername]);
+  if (!creatorUser) return [];
+
+  const rows = await dbAll(`
+    SELECT c.*, u.username as owner_username
+    FROM content c
+    LEFT JOIN users u ON c.owner_id = u.id
+    WHERE c.owner_id = ? AND c.content_type = 'nommly'
+    ORDER BY c.created_at DESC
+  `, [creatorUser.id]);
+
+  return await Promise.all(rows.map(r => formatContentItem(r, currentUserId)));
+};
+

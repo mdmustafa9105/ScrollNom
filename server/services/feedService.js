@@ -53,22 +53,46 @@ export const getFollowingFeed = async (userUid, page = 1, limit = 10) => {
       isSaved = !!saveRow;
     }
 
+    let taggedDishes = [];
+    let foodCategories = [];
+    let timeBelts = [];
+    try { taggedDishes = JSON.parse(r.tagged_dishes_json || '[]'); } catch (e) {}
+    try { foodCategories = JSON.parse(r.food_categories_json || '[]'); } catch (e) {}
+    try { timeBelts = JSON.parse(r.time_belts_json || '[]'); } catch (e) {}
+
+    if (taggedDishes.length === 0 && r.dish_id) {
+      taggedDishes = [{ dishId: r.dish_id, name: r.dish_title, price: r.dish_price }];
+    }
+
+    const ownerUser = await dbGet('SELECT username, display_name, avatar_url, is_creator FROM users WHERE id = ?', [r.owner_id]);
+    const ownerUsername = ownerUser?.username || r.owner_username || (r.owner_name ? r.owner_name.toLowerCase().replace(/\s+/g, '') : 'creator');
+
     return {
       id: r.id,
       contentType: r.content_type,
       ownerId: r.owner_id,
       ownerType: r.owner_type,
-      ownerName: r.owner_name,
-      ownerUsername: r.owner_username || r.owner_name.toLowerCase().replace(/\s+/g, ''),
-      ownerAvatar: r.owner_avatar,
-      dishId: r.dish_id,
-      dishTitle: r.dish_title,
-      title: r.dish_title,
-      dishPrice: r.dish_price,
+      ownerName: ownerUser?.display_name || r.owner_name,
+      ownerUsername: ownerUsername,
+      creatorName: ownerUser?.display_name || r.owner_name,
+      creatorHandle: `@${ownerUsername}`,
+      creatorAvatar: ownerUser?.avatar_url || r.owner_avatar,
+      isVerifiedCreator: Boolean(ownerUser?.is_creator || r.owner_type === 'creator'),
+      restaurantId: r.restaurant_id || 'r1',
       restaurantName: r.restaurant_name,
+      dishId: r.dish_id,
+      dishTitle: r.dish_title || r.caption,
+      title: r.caption || r.dish_title || 'Nommly Reel',
+      dishPrice: r.dish_price,
+      videoUrl: r.media_url,
       mediaUrl: r.media_url,
-      posterUrl: r.poster_url,
+      posterUrl: r.poster_url || 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80',
       caption: r.caption,
+      taggedDishes,
+      foodCategories,
+      categories: foodCategories,
+      timeBelts,
+      analysisStatus: r.analysis_status || 'confirmed',
       likeCount: r.like_count,
       saveCount: r.save_count,
       isLiked,

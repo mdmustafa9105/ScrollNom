@@ -164,6 +164,28 @@ export const AppProvider = ({ children }) => {
     return null;
   };
 
+  // Fetch real content videos from backend API
+  const fetchNommlyVideos = async () => {
+    try {
+      const token = await getAuthToken();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const res = await fetch(`${API_BASE}/content/nommly`, { headers });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setVideos(json.data);
+        }
+      }
+    } catch (e) {
+      console.error('[FETCH NOMMLY VIDEOS ERROR]', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchNommlyVideos();
+  }, [user.isLoggedIn]);
+
+
   // Helper to handle pending order/action intent after authentication
   const executePendingOrderIntent = () => {
     const targetDish = authModal.pendingDish || pendingAuthIntent;
@@ -482,9 +504,12 @@ export const AppProvider = ({ children }) => {
         activeTab,
         setActiveTab,
         videos,
+        setVideos,
+        fetchNommlyVideos,
         activeVideoIndex,
         setActiveVideoIndex,
         cartItems,
+        setCartItems,
         addToCart,
         updateCartQuantity,
         clearCart,

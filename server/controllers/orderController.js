@@ -2,7 +2,7 @@ import { createOrderService } from '../services/orderService.js';
 import { dbAll, dbGet } from '../db/database.js';
 import { db } from '../db/memoryStore.js';
 
-export const createOrder = (req, res, next) => {
+export const createOrder = async (req, res, next) => {
   try {
     const { items, foodOnFriend } = req.body;
     
@@ -15,7 +15,7 @@ export const createOrder = (req, res, next) => {
 
     // Strict security: derive userId from verified Firebase token (req.user)
     const userId = req.user?.uid || 'u1';
-    const order = createOrderService({ items, userId, foodOnFriend });
+    const order = await createOrderService({ items, userId, foodOnFriend });
 
     res.status(201).json({
       success: true,
@@ -25,6 +25,7 @@ export const createOrder = (req, res, next) => {
     next(error);
   }
 };
+
 
 // GET /api/orders/my — Persistent customer order history scoped to authenticated user
 export const getUserOrders = async (req, res, next) => {

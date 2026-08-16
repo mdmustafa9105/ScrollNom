@@ -14,6 +14,7 @@ import opsRoutes from './routes/opsRoutes.js';
 import discoveryRoutes from './routes/discoveryRoutes.js';
 import collaborationRoutes from './routes/collaborationRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import restaurantRoutes from './routes/restaurantRoutes.js';
 import path from 'path';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -28,8 +29,9 @@ app.use(cors({
   credentials: true
 }));
 
-// Serve static uploaded media files
+// Serve static uploaded media files & creator video folders
 app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+app.use('/Go_cool_Bengaluru', express.static(path.join(process.cwd(), 'Go_cool_Bengaluru')));
 
 // Increase JSON body limit to 50MB for video uploads
 app.use(express.json({
@@ -50,6 +52,7 @@ app.use((req, res, next) => {
 app.use('/api', healthRoutes);
 app.use('/api', userRoutes);
 app.use('/api', contentRoutes);
+app.use('/api', restaurantRoutes);
 app.use('/api', analyticsRoutes);
 app.use('/api', discoveryRoutes);
 app.use('/api', deliveryRoutes);
@@ -60,6 +63,7 @@ app.use('/api', foodOnFriendRoutes);
 app.use('/api', collaborationRoutes);
 app.use('/api', uploadRoutes);
 app.use('/api', webhookRoutes);
+
 
 // 404 Route Handler
 app.use((req, res) => {

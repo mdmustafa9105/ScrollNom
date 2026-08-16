@@ -8,7 +8,7 @@ import { UserProfileModal } from '../../components/profile/UserProfileModal';
 import { PublicRestaurantProfileModal } from '../../components/restaurant/PublicRestaurantProfileModal';
 
 export const ExplorePage = () => {
-  const { addToCart, setActiveTab, setActiveVideoIndex, user, getAuthToken, showToast } = useApp();
+  const { videos, addToCart, setActiveTab, setActiveVideoIndex, user, getAuthToken, showToast } = useApp();
   const [activeSubTab, setActiveSubTab] = useState('food'); // 'food' | 'restaurants' | 'creators' | 'users'
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'halal' | 'top_rated'
@@ -63,7 +63,9 @@ export const ExplorePage = () => {
     };
   }, [searchQuery, activeSubTab]);
 
-  const filteredVideos = MOCK_NOMMLY_VIDEOS.filter((item) => {
+  const displayVideos = (videos && videos.length > 0) ? videos : MOCK_NOMMLY_VIDEOS;
+
+  const filteredVideos = displayVideos.filter((item) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q || item.title.toLowerCase().includes(q) ||
                           item.restaurantName.toLowerCase().includes(q) ||
@@ -78,8 +80,9 @@ export const ExplorePage = () => {
     if (activeFilter === 'main_food') return matchesSearch && item.category === 'main_food';
     if (activeFilter === 'beverages') return matchesSearch && item.category === 'beverages';
     if (activeFilter === 'desserts') return matchesSearch && item.category === 'desserts';
-    if (activeFilter === 'vegetarian') return matchesSearch && item.diet === 'vegetarian';
-    if (activeFilter === 'non_vegetarian') return matchesSearch && item.diet === 'non_vegetarian';
+    if (activeFilter === 'vegetarian' || activeFilter === 'veg') return matchesSearch && (item.diet === 'vegetarian' || item.dietType === 'VEG' || item.dietType === 'VEGAN');
+    if (activeFilter === 'non_vegetarian' || activeFilter === 'non_veg') return matchesSearch && (item.diet === 'non_vegetarian' || item.dietType === 'NON_VEG');
+    if (activeFilter === 'egg') return matchesSearch && item.dietType === 'EGG';
     return matchesSearch;
   });
 
@@ -194,6 +197,71 @@ export const ExplorePage = () => {
         )}
       </div>
 
+      {/* DISHES & REELS GRID */}
+      {activeSubTab === 'food' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredVideos.map((video) => (
+            <div
+              key={video.id}
+              className="bg-white rounded-3xl overflow-hidden border border-brand-cream-dark shadow-soft hover:shadow-hover transition-all duration-300 group flex flex-col justify-between"
+            >
+              {/* Media Header */}
+              <div className="relative aspect-video overflow-hidden cursor-pointer" onClick={() => handleWatchVideo(video)}>
+                <img
+                  src={video.posterUrl}
+                  alt={video.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+                
+                {/* Badges */}
+                <div className="absolute top-3 left-3 flex items-center space-x-2">
+                  {video.halalCertified && (
+                    <div className="bg-emerald-950/80 backdrop-blur-sm border border-emerald-500/30 p-1 rounded-full" title="Halal Certified">
+                      <HalalIcon className="w-4 h-4 text-emerald-400" />
+                    </div>
+                  )}
+                  <SpiceLevelIndicator level={video.spiceLevel} />
+                </div>
+
+                <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center space-x-1 text-amber-400 font-bold text-xs">
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  <span>{video.rating}</span>
+                </div>
+
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <h4 className="font-bold text-base font-heading drop-shadow-md line-clamp-1">{video.title}</h4>
+                  <p className="text-xs text-white/80 font-medium drop-shadow-sm">{video.restaurantName}</p>
+                </div>
+              </div>
+
+              {/* Card Footer */}
+              <div className="p-4 flex items-center justify-between bg-white border-t border-brand-cream-dark/60">
+                <div>
+                  <p className="text-xs text-brand-charcoal-muted">Dish Price</p>
+                  <p className="text-lg font-bold text-brand-coral">₹{video.dishPrice}</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleWatchVideo(video)}
+                    className="px-3.5 py-2 bg-cream-bg text-brand-charcoal font-semibold text-xs rounded-xl border border-warm-grey hover:bg-cream-dark transition-all"
+                  >
+                    Nom Reel 🎥
+                  </button>
+                  <button
+                    onClick={() => addToCart(video)}
+                    className="px-4 py-2 bg-brand-coral text-white font-bold text-xs rounded-xl shadow-button hover:bg-brand-coral-hover transition-all flex items-center space-x-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Order</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* USER SEARCH RESULTS SECTION */}
       {(activeSubTab === 'users' || userSearchResults.length > 0) && (
         <div className="space-y-4">
@@ -265,71 +333,6 @@ export const ExplorePage = () => {
               {searchQuery ? `No ScrollNom users found matching "${searchQuery}"` : 'Type a username or display name above to search users!'}
             </div>
           ) : null}
-        </div>
-      )}
-
-      {/* DISH GRID */}
-      {activeSubTab === 'food' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVideos.map((video, idx) => (
-            <div
-              key={video.id}
-              className="bg-white rounded-3xl overflow-hidden border border-brand-cream-dark shadow-soft hover:shadow-hover transition-all duration-300 group flex flex-col justify-between"
-            >
-              {/* Media Header */}
-              <div className="relative aspect-video overflow-hidden cursor-pointer" onClick={() => { setActiveVideoIndex(idx); setActiveTab('nommly'); }}>
-                <img
-                  src={video.posterUrl}
-                  alt={video.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-                
-                {/* Badges */}
-                <div className="absolute top-3 left-3 flex items-center space-x-2">
-                  {video.halalCertified && (
-                    <div className="bg-emerald-950/80 backdrop-blur-sm border border-emerald-500/30 p-1 rounded-full" title="Halal Certified">
-                      <HalalIcon className="w-4 h-4 text-emerald-400" />
-                    </div>
-                  )}
-                  <SpiceLevelIndicator level={video.spiceLevel} />
-                </div>
-
-                <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center space-x-1 text-amber-400 font-bold text-xs">
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>{video.rating}</span>
-                </div>
-
-                <div className="absolute bottom-3 left-3 right-3 text-white">
-                  <h4 className="font-bold text-base font-heading drop-shadow-md line-clamp-1">{video.title}</h4>
-                  <p className="text-xs text-white/80 font-medium drop-shadow-sm">{video.restaurantName}</p>
-                </div>
-              </div>
-
-              {/* Card Footer */}
-              <div className="p-4 flex items-center justify-between bg-white border-t border-brand-cream-dark/60">
-                <div>
-                  <p className="text-xs text-brand-charcoal-muted">Dish Price</p>
-                  <p className="text-lg font-bold text-brand-coral">₹{video.dishPrice}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => { setActiveVideoIndex(idx); setActiveTab('nommly'); }}
-                    className="px-3.5 py-2 bg-cream-bg text-brand-charcoal font-semibold text-xs rounded-xl border border-warm-grey hover:bg-cream-dark transition-all"
-                  >
-                    Nom Reel 🎥
-                  </button>
-                  <button
-                    onClick={() => addToCart(video)}
-                    className="px-4 py-2 bg-brand-coral text-white font-bold text-xs rounded-xl shadow-button hover:bg-brand-coral-hover transition-all flex items-center space-x-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Order</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       )}
 

@@ -7,7 +7,8 @@ import { Star, Play, Plus, Clock, Sparkles, Flame, MessageSquare, TrendingUp, Co
 import { UserProfileModal } from '../../components/profile/UserProfileModal';
 
 export const HomePage = () => {
-  const { user, setActiveTab, addToCart, setActiveVideoIndex, getAuthToken, showToast, promptAuth } = useApp();
+  const { videos, user, setActiveTab, addToCart, setActiveVideoIndex, getAuthToken, showToast, promptAuth } = useApp();
+  const displayVideos = (videos && videos.length > 0) ? videos : MOCK_NOMMLY_VIDEOS;
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeStory, setActiveStory] = useState(null);
 
@@ -67,7 +68,7 @@ export const HomePage = () => {
   };
 
   const handleWatchReelFromStory = (story) => {
-    const matchedIndex = MOCK_NOMMLY_VIDEOS.findIndex(
+    const matchedIndex = displayVideos.findIndex(
       v => v.creatorName === story.creatorName || v.restaurantName === story.restaurantName
     );
     setActiveVideoIndex(matchedIndex >= 0 ? matchedIndex : 0);
@@ -482,7 +483,7 @@ export const HomePage = () => {
         ) : (
           /* FALLBACK DISCOVERY FEED FOR GUESTS / SPARSE FEEDS */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {MOCK_NOMMLY_VIDEOS.map((item, idx) => (
+            {displayVideos.map((item, idx) => (
               <div
                 key={item.id || idx}
                 className="bg-white rounded-3xl overflow-hidden border border-brand-cream-dark shadow-soft hover:shadow-hover transition-all duration-300 group flex flex-col justify-between"

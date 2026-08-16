@@ -1,0 +1,283 @@
+{
+  "creators": [
+    {
+      "creator": "go_cool_bengaluru",
+      "videos": [
+        {
+          "video": "Breakfast.mp4",
+          "restaurant": "r3",
+          "restaurantName": "CTR Benne Dosa - Malleshwaram",
+          "dishes": [
+            {
+              "dish": "d3_1",
+              "dishTitle": "Ghee Roast Benne Dosa",
+              "dietType": "VEG",
+              "category": "BREAKFAST",
+              "timeBelts": ["MORNING"],
+              "price": 140,
+              "offerId": null
+            },
+            {
+              "dish": "d3_3",
+              "dishTitle": "Authentic Filter Coffee",
+              "dietType": "VEG",
+              "category": "BEVERAGE",
+              "timeBelts": ["MORNING"],
+              "price": 45,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Breakfast1.mp4",
+          "restaurant": "r3",
+          "restaurantName": "CTR Benne Dosa - Malleshwaram",
+          "dishes": [
+            {
+              "dish": "d3_2",
+              "dishTitle": "Idli Vada Combo",
+              "dietType": "VEG",
+              "category": "BREAKFAST",
+              "timeBelts": ["MORNING", "MORNING_AFTERNOON_MIX"],
+              "price": 90,
+              "offerId": null
+            },
+            {
+              "dish": "d3_3",
+              "dishTitle": "Authentic Filter Coffee",
+              "dietType": "VEG",
+              "category": "BEVERAGE",
+              "timeBelts": ["MORNING"],
+              "price": 45,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Lunch.mp4",
+          "restaurant": "r1",
+          "restaurantName": "Paradise Biryani Palace",
+          "dishes": [
+            {
+              "dish": "d1_1",
+              "dishTitle": "Hyderabadi Dum Biryani",
+              "dietType": "NON_VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["AFTERNOON", "EVENING"],
+              "price": 380,
+              "offerId": "o1",
+              "discountPercent": 50,
+              "promoCode": "SCROLL50"
+            },
+            {
+              "dish": "d1_4",
+              "dishTitle": "Chicken 65",
+              "dietType": "NON_VEG",
+              "category": "SNACK",
+              "timeBelts": ["AFTERNOON", "EVENING"],
+              "price": 260,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Lunch1.mp4",
+          "restaurant": "r1",
+          "restaurantName": "Paradise Biryani Palace",
+          "dishes": [
+            {
+              "dish": "d1_2",
+              "dishTitle": "Special Mutton Biryani",
+              "dietType": "NON_VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["AFTERNOON"],
+              "price": 450,
+              "offerId": "o1",
+              "discountPercent": 50,
+              "promoCode": "SCROLL50"
+            },
+            {
+              "dish": "d1_5",
+              "dishTitle": "Chilled Cold Coffee",
+              "dietType": "VEG",
+              "category": "BEVERAGE",
+              "timeBelts": ["AFTERNOON"],
+              "price": 150,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Lunch2.mp4",
+          "restaurant": "r1",
+          "restaurantName": "Paradise Biryani Palace",
+          "dishes": [
+            {
+              "dish": "d1_3",
+              "dishTitle": "Royal Paneer Biryani",
+              "dietType": "VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["AFTERNOON", "AFTERNOON_EVENING_MIX"],
+              "price": 290,
+              "offerId": null
+            },
+            {
+              "dish": "d1_6",
+              "dishTitle": "Butter Garlic Naan",
+              "dietType": "VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["AFTERNOON"],
+              "price": 60,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Evening.mp4",
+          "restaurant": "r2",
+          "restaurantName": "The Smashed Patty Co. - Koramangala",
+          "dishes": [
+            {
+              "dish": "d2_1",
+              "dishTitle": "Ultimate Smashed Truffle Cheeseburger",
+              "dietType": "NON_VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["AFTERNOON_EVENING_MIX", "EVENING"],
+              "price": 320,
+              "offerId": "o4",
+              "discountPercent": 20,
+              "promoCode": "BURGER20"
+            },
+            {
+              "dish": "d2_3",
+              "dishTitle": "Loaded Animal Fries",
+              "dietType": "VEG",
+              "category": "SNACK",
+              "timeBelts": ["EVENING"],
+              "price": 180,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Evening1.mp4",
+          "restaurant": "r4",
+          "restaurantName": "Third Wave Coffee - Indiranagar",
+          "dishes": [
+            {
+              "dish": "d4_1",
+              "dishTitle": "Artisanal Creamy Hazelnut Cold Coffee",
+              "dietType": "VEG",
+              "category": "BEVERAGE",
+              "timeBelts": ["EVENING"],
+              "price": 220,
+              "offerId": "o5",
+              "discountPercent": 15,
+              "promoCode": "COFFEE15"
+            },
+            {
+              "dish": "d4_3",
+              "dishTitle": "Choco Chip Muffin",
+              "dietType": "VEG",
+              "category": "DESSERT",
+              "timeBelts": ["EVENING"],
+              "price": 120,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Evening2.mp4",
+          "restaurant": "r2",
+          "restaurantName": "The Smashed Patty Co. - Koramangala",
+          "dishes": [
+            {
+              "dish": "d2_2",
+              "dishTitle": "Veggie Crunch Smash Burger",
+              "dietType": "VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["EVENING"],
+              "price": 240,
+              "offerId": null
+            },
+            {
+              "dish": "d2_4",
+              "dishTitle": "Thick Chocolate Milkshake",
+              "dietType": "VEG",
+              "category": "BEVERAGE",
+              "timeBelts": ["EVENING"],
+              "price": 160,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "OverNight.mp4",
+          "restaurant": "r1",
+          "restaurantName": "Paradise Biryani Palace",
+          "dishes": [
+            {
+              "dish": "d1_2",
+              "dishTitle": "Special Mutton Biryani",
+              "dietType": "NON_VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["OVERNIGHT"],
+              "price": 450,
+              "offerId": "o1",
+              "discountPercent": 50,
+              "promoCode": "SCROLL50"
+            },
+            {
+              "dish": "d1_5",
+              "dishTitle": "Chilled Cold Coffee",
+              "dietType": "VEG",
+              "category": "BEVERAGE",
+              "timeBelts": ["OVERNIGHT"],
+              "price": 150,
+              "offerId": null
+            }
+          ]
+        },
+        {
+          "video": "Overnight1.mp4",
+          "restaurant": "r1",
+          "restaurantName": "Paradise Biryani Palace",
+          "dishes": [
+            {
+              "dish": "d1_1",
+              "dishTitle": "Hyderabadi Dum Biryani",
+              "dietType": "NON_VEG",
+              "category": "MAIN_FOOD",
+              "timeBelts": ["OVERNIGHT"],
+              "price": 380,
+              "offerId": "o1",
+              "discountPercent": 50,
+              "promoCode": "SCROLL50"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "creator": "azamjasba",
+      "videos": [
+        {
+          "video": "StreetFoodVlog1.mp4",
+          "restaurant": "r1",
+          "restaurantName": "Paradise Biryani Palace",
+          "dishes": [
+            {
+              "dish": "d1_4",
+              "dishTitle": "Chicken 65",
+              "dietType": "NON_VEG",
+              "category": "STREET_FOOD",
+              "timeBelts": ["EVENING", "OVERNIGHT"],
+              "price": 260,
+              "offerId": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

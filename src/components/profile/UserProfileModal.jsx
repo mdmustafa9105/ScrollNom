@@ -4,8 +4,9 @@ import { API_BASE } from '../../config/api';
 import { X, UserPlus, UserCheck, ShieldCheck, Sparkles, Award } from 'lucide-react';
 
 export const UserProfileModal = ({ username, isOpen, onClose }) => {
-  const { user, getAuthToken, showToast } = useApp();
+  const { user, getAuthToken, showToast, setActiveTab, setActiveVideoIndex, videos } = useApp();
   const [profile, setProfile] = useState(null);
+  const [creatorVideos, setCreatorVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
 
@@ -15,14 +16,23 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
     let isMounted = true;
     setLoading(true);
 
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
       try {
         const token = await getAuthToken();
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        const res = await fetch(`${API_BASE}/users/profile/${username}`, { headers });
-        if (res.ok) {
-          const json = await res.json();
+
+        const [profRes, vidRes] = await Promise.all([
+          fetch(`${API_BASE}/users/profile/${username}`, { headers }),
+          fetch(`${API_BASE}/content/creator/${username}`, { headers })
+        ]);
+
+        if (profRes.ok) {
+          const json = await profRes.json();
           if (isMounted) setProfile(json.data);
+        }
+        if (vidRes.ok) {
+          const json = await vidRes.json();
+          if (isMounted) setCreatorVideos(json.data || []);
         }
       } catch (e) {
         console.error('[PROFILE FETCH ERROR]', e);
@@ -31,11 +41,20 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
       }
     };
 
-    fetchProfile();
+    fetchProfileData();
     return () => { isMounted = false; };
   }, [isOpen, username]);
 
   if (!isOpen) return null;
+
+  const handleVideoClick = (videoItem) => {
+    const idx = videos.findIndex(v => v.id === videoItem.id || v.mediaUrl === videoItem.mediaUrl);
+    if (idx >= 0) {
+      setActiveVideoIndex(idx);
+    }
+    setActiveTab('nommly');
+    onClose();
+  };
 
   const handleToggleFollow = async () => {
     if (!user.isLoggedIn) {
@@ -44,7 +63,6 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
     }
     if (!profile || profile.isSelf) return;
 
-    // Optimistic UI state update
     const previousIsFollowing = profile.isFollowing;
     const previousCount = profile.followerCount;
 
@@ -79,7 +97,6 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
           followerCount: json.data.followerCount
         }));
       } else {
-        // Revert on error
         setProfile(prev => ({
           ...prev,
           isFollowing: previousIsFollowing,
@@ -101,7 +118,7 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-modal border border-warm-grey relative animate-scale-up">
+      <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-modal border border-warm-grey relative animate-scale-up">
         {/* Header Scrim */}
         <div className="h-28 bg-gradient-to-r from-brand-coral via-brand-coral-hover to-brand-teal p-4 relative flex justify-between items-start">
           <span className="text-[10px] uppercase font-bold tracking-widest text-white/90 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/20">
@@ -201,6 +218,52 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
                   <p className="text-[11px] font-semibold text-charcoal-muted uppercase tracking-wider">Following</p>
                 </div>
               </div>
+
+              {/* Published Creator Nommly Reels */}
+              <div className="pt-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-charcoal uppercase tracking-wider">
+                    Published Nommly Reels ({creatorVideos.length})
+                  </h4>
+                </div>
+
+                {creatorVideos.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
+                    {creatorVideos.map((v) => (
+                      <div
+                        key={v.id}
+                        onClick={() => handleVideoClick(v)}
+                        className="relative rounded-2xl overflow-hidden aspect-[3/4] bg-black group cursor-pointer border border-warm-grey hover:border-brand-coral transition-all shadow-sm"
+                      >
+                        <video
+                          src={v.videoUrl}
+                          poster={v.posterUrl}
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 p-2 flex flex-col justify-between">
+                          <span className="text-[9px] font-extrabold bg-brand-coral text-white px-2 py-0.5 rounded-full self-start shadow-sm">
+                            ₹{v.dishPrice}
+                          </span>
+                          <div>
+                            <p className="text-white text-[10px] font-bold line-clamp-2 leading-tight">
+                              {v.title || v.dishTitle}
+                            </p>
+                            <p className="text-white/70 text-[9px] truncate mt-0.5">
+                              📍 {v.restaurantName}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-cream-bg border border-warm-grey text-center text-xs text-charcoal-muted">
+                    No published Nommly videos yet.
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="py-6 text-center text-charcoal-muted text-sm">
@@ -212,3 +275,4 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
     </div>
   );
 };
+

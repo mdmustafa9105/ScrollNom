@@ -1,0 +1,72 @@
+[
+  {
+    "file": "Breakfast.mp4",
+    "sizeBytes": 7460674,
+    "duration": 25.93,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Breakfast_frame1.png"
+  },
+  {
+    "file": "Breakfast1.mp4",
+    "sizeBytes": 10550491,
+    "duration": 34.8,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Breakfast1_frame1.png"
+  },
+  {
+    "file": "Evening.mp4",
+    "sizeBytes": 12923975,
+    "duration": 41.51,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Evening_frame1.png"
+  },
+  {
+    "file": "Evening1.mp4",
+    "sizeBytes": 21148544,
+    "duration": 53.83,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Evening1_frame1.png"
+  },
+  {
+    "file": "Evening2.mp4",
+    "sizeBytes": 15774756,
+    "duration": 49.57,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Evening2_frame1.png"
+  },
+  {
+    "file": "Lunch.mp4",
+    "sizeBytes": 10591822,
+    "duration": 38.5,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Lunch_frame1.png"
+  },
+  {
+    "file": "Lunch1.mp4",
+    "sizeBytes": 8728463,
+    "duration": 32.67,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Lunch1_frame1.png"
+  },
+  {
+    "file": "Lunch2.mp4",
+    "sizeBytes": 8770385,
+    "duration": 46.62,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Lunch2_frame1.png"
+  },
+  {
+    "file": "OverNight.mp4",
+    "sizeBytes": 5731900,
+    "duration": 26.33,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\OverNight_frame1.png"
+  },
+  {
+    "file": "Overnight1.mp4",
+    "sizeBytes": 8479096,
+    "duration": 32.78,
+    "dimensions": "720x1280",
+    "frameScreenshot": "d:\\ScrollNom\\docs\\video_frames\\Overnight1_frame1.png"
+  }
+]
