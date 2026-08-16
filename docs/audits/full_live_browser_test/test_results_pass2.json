@@ -1,0 +1,122 @@
+[
+  {
+    "part": "13",
+    "test": "Rider Portal (URL)",
+    "status": "FAIL",
+    "detail": "Rider portal content check"
+  },
+  {
+    "part": "8",
+    "test": "Cart Page (Real)",
+    "status": "PASS",
+    "detail": "Cart loaded with items"
+  },
+  {
+    "part": "9",
+    "test": "Razorpay Button Present",
+    "status": "PASS",
+    "detail": "Razorpay checkout button found"
+  },
+  {
+    "part": "9",
+    "test": "Razorpay Checkout Opens",
+    "status": "PASS",
+    "detail": "Razorpay checkout modal visible"
+  },
+  {
+    "part": "1",
+    "test": "My Account Page",
+    "status": "PASS",
+    "detail": "Account/Profile page loaded"
+  },
+  {
+    "part": "3",
+    "test": "Search: dosa",
+    "status": "PASS",
+    "detail": "Results found for \"dosa\""
+  },
+  {
+    "part": "3",
+    "test": "Search: burger",
+    "status": "PASS",
+    "detail": "Results found for \"burger\""
+  },
+  {
+    "part": "3",
+    "test": "Search: ice cream",
+    "status": "PASS",
+    "detail": "Results found for \"ice cream\""
+  },
+  {
+    "part": "3",
+    "test": "Search: juice",
+    "status": "PASS",
+    "detail": "Results found for \"juice\""
+  },
+  {
+    "part": "4",
+    "test": "Search Creator",
+    "status": "PASS",
+    "detail": "Creator search results found"
+  },
+  {
+    "part": "4",
+    "test": "Creator Public Profile",
+    "status": "TESTED",
+    "detail": "Attempted to open creator profile"
+  },
+  {
+    "part": "6",
+    "test": "Follow Creator",
+    "status": "PARTIAL",
+    "detail": "Follow button not found or already following"
+  },
+  {
+    "part": "23",
+    "test": "Mobile Customer Home",
+    "status": "TESTED",
+    "detail": "390x844 customer home tested"
+  },
+  {
+    "part": "23",
+    "test": "Mobile Nommly",
+    "status": "TESTED",
+    "detail": "390x844 Nommly tested"
+  },
+  {
+    "part": "23",
+    "test": "Tablet Nommly",
+    "status": "TESTED",
+    "detail": "820x1180 Nommly tested"
+  },
+  {
+    "part": "23",
+    "test": "Desktop Nommly",
+    "status": "TESTED",
+    "detail": "1920x1080 Nommly tested"
+  },
+  {
+    "part": "11",
+    "test": "Restaurant New Order (P2)",
+    "status": "PASS",
+    "detail": "Order ORD-1786799483866-750 in restaurant"
+  },
+  {
+    "part": "13",
+    "test": "Rider Active Delivery",
+    "status": "PASS",
+    "detail": "Delivery in rider queue"
+  },
+  {
+    "part": "16",
+    "test": "Restaurant Post-Delivery Empty",
+    "status": "PASS",
+    "detail": "Delivered order cleared from restaurant"
+  },
+  {
+    "part": "16",
+    "test": "Rider Post-Delivery Empty",
+    "status": "PASS",
+    "detail": "Delivered delivery cleared from rider"
+  }
+]

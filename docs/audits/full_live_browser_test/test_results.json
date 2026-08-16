@@ -1,0 +1,188 @@
+[
+  {
+    "part": "1",
+    "test": "Homepage Load",
+    "status": "PASS",
+    "detail": "ScrollNom homepage loaded"
+  },
+  {
+    "part": "1",
+    "test": "Location Display",
+    "status": "PASS",
+    "detail": "Location shown in sidebar"
+  },
+  {
+    "part": "1",
+    "test": "Navigation Sidebar",
+    "status": "PASS",
+    "detail": "Sidebar navigation visible"
+  },
+  {
+    "part": "1",
+    "test": "Explore Page Categories",
+    "status": "PASS",
+    "detail": "Food categories visible"
+  },
+  {
+    "part": "1",
+    "test": "Search Biryani",
+    "status": "PASS",
+    "detail": "Biryani results found"
+  },
+  {
+    "part": "1",
+    "test": "Search Coffee",
+    "status": "PASS",
+    "detail": "Coffee results found"
+  },
+  {
+    "part": "1",
+    "test": "User Search",
+    "status": "TESTED",
+    "detail": "User search tab interaction attempted"
+  },
+  {
+    "part": "1",
+    "test": "Nommly Videos Page",
+    "status": "PASS",
+    "detail": "Nommly content loaded"
+  },
+  {
+    "part": "1",
+    "test": "Time Belt Visible",
+    "status": "PARTIAL",
+    "detail": "Time Belt not visually confirmed"
+  },
+  {
+    "part": "1",
+    "test": "Broken Belt",
+    "status": "PASS",
+    "detail": "Broken Belt found"
+  },
+  {
+    "part": "1",
+    "test": "Bengaluru Location",
+    "status": "PASS",
+    "detail": "Location display checked"
+  },
+  {
+    "part": "3",
+    "test": "Category: Breakfast",
+    "status": "TESTED",
+    "detail": "Breakfast category interaction tested"
+  },
+  {
+    "part": "3",
+    "test": "Category: Beverages",
+    "status": "TESTED",
+    "detail": "Beverages category interaction tested"
+  },
+  {
+    "part": "3",
+    "test": "Category: Desserts",
+    "status": "TESTED",
+    "detail": "Desserts category interaction tested"
+  },
+  {
+    "part": "7",
+    "test": "Restaurant Empty State",
+    "status": "PASS",
+    "detail": "Restaurant shows 0 active orders"
+  },
+  {
+    "part": "13",
+    "test": "Rider Empty State",
+    "status": "FAIL",
+    "detail": "Rider may show stale deliveries"
+  },
+  {
+    "part": "8",
+    "test": "Cart Page",
+    "status": "FAIL",
+    "detail": "Cart page issue"
+  },
+  {
+    "part": "8",
+    "test": "Checkout Button",
+    "status": "PASS",
+    "detail": "Razorpay checkout button visible"
+  },
+  {
+    "part": "9",
+    "test": "Razorpay Checkout",
+    "status": "BLOCKED",
+    "detail": "Could not click checkout button"
+  },
+  {
+    "part": "11",
+    "test": "Restaurant Receives Order",
+    "status": "PASS",
+    "detail": "Order ORD-1786797108437-621 visible in restaurant"
+  },
+  {
+    "part": "11",
+    "test": "Restaurant Order Items",
+    "status": "PASS",
+    "detail": "Food items visible in restaurant order"
+  },
+  {
+    "part": "12",
+    "test": "Restaurant Accept",
+    "status": "TESTED",
+    "detail": "Accept button clicked"
+  },
+  {
+    "part": "12",
+    "test": "Restaurant Preparing",
+    "status": "TESTED",
+    "detail": "Preparing button clicked"
+  },
+  {
+    "part": "12",
+    "test": "Restaurant Ready",
+    "status": "TESTED",
+    "detail": "Ready button clicked"
+  },
+  {
+    "part": "13",
+    "test": "Rider Receives Delivery",
+    "status": "PARTIAL",
+    "detail": "Delivery may have auto-progressed past rider-active state"
+  },
+  {
+    "part": "20",
+    "test": "Time Belt UI",
+    "status": "PARTIAL",
+    "detail": "Time Belt text not found in DOM"
+  },
+  {
+    "part": "20",
+    "test": "Broken Belt",
+    "status": "PARTIAL",
+    "detail": "Broken Belt button not found via text match"
+  },
+  {
+    "part": "23",
+    "test": "Responsive mobile_390x844",
+    "status": "TESTED",
+    "detail": "Viewport 390x844 tested"
+  },
+  {
+    "part": "23",
+    "test": "Responsive tablet_820x1180",
+    "status": "TESTED",
+    "detail": "Viewport 820x1180 tested"
+  },
+  {
+    "part": "23",
+    "test": "Responsive desktop_1920x1080",
+    "status": "TESTED",
+    "detail": "Viewport 1920x1080 tested"
+  },
+  {
+    "part": "25",
+    "test": "Vikram Singh in Restaurant",
+    "status": "PASS",
+    "detail": "No fake rider name"
+  }
+]

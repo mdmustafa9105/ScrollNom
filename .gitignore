@@ -1,0 +1,41 @@
+# Logs & Temporary Files
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node Modules
+node_modules/
+
+# Production & Build Outputs
+dist/
+dist-ssr/
+*.local
+
+# Environment & Secret Files (CRITICAL: NEVER COMMIT SECRETS)
+.env
+.env.local
+.env.*.local
+.env.production
+
+# IDE & System Files
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Scratch & Artifacts
+scratch/
+screenshots/
+
+# Database Files
+*.db
+*.db.backup
+

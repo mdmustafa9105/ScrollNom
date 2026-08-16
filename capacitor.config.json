@@ -1,0 +1,14 @@
+{
+  "appId": "com.scrollnom.app",
+  "appName": "ScrollNom",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#FFFBF2"
+    }
+  }
+}
