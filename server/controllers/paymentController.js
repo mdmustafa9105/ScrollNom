@@ -19,7 +19,7 @@ export const createPaymentOrder = async (req, res, next) => {
         });
       }
       const userId = req.user?.uid || 'u1';
-      order = createOrderService({ items, userId, foodOnFriend });
+      order = await createOrderService({ items, userId, foodOnFriend });
     }
 
     // Determine payable amount (respect Food on Friend organizer share if active)

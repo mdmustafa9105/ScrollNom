@@ -32,12 +32,12 @@ export const triggerRazorpayCheckout = async ({ amount, user, cartItems, items, 
         razorpayOrderId: `order_mock_${Date.now()}`,
         amount,
         currency: 'INR',
-        keyId: 'rzp_test_TPLSuyqxKXDmNn'
+        keyId: 'rzp_test_TPk8Hq9WndmWQG'
       };
     }
 
     const options = {
-      key: orderData.keyId || 'rzp_test_TPLSuyqxKXDmNn',
+      key: orderData.keyId || 'rzp_test_TPk8Hq9WndmWQG',
       amount: (orderData.amount || amount) * 100, // Amount in paise
       currency: orderData.currency || 'INR',
       name: 'ScrollNom Food Delivery (TEST MODE)',
