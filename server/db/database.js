@@ -83,6 +83,61 @@ db.serialize(() => {
   db.run(`ALTER TABLE content ADD COLUMN tagged_dishes_json TEXT;`, () => {});
   db.run(`ALTER TABLE content ADD COLUMN food_categories_json TEXT;`, () => {});
   db.run(`ALTER TABLE content ADD COLUMN time_belts_json TEXT;`, () => {});
+
+  // Conversations Table (Phase 15)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS conversations (
+      id TEXT PRIMARY KEY,
+      participant_a TEXT NOT NULL,
+      participant_b TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(participant_a, participant_b),
+      FOREIGN KEY(participant_a) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(participant_b) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_conv_part_a ON conversations(participant_a);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_conv_part_b ON conversations(participant_b);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_conv_updated ON conversations(updated_at DESC);`);
+
+  // Messages Table (Phase 15)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL,
+      sender_id TEXT NOT NULL,
+      body TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      read_at DATETIME,
+      FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+      FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_msg_conv ON messages(conversation_id);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_msg_sender ON messages(sender_id);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_msg_created ON messages(created_at ASC);`);
+
+  // Notifications Table (Phase 15)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      recipient_user_id TEXT NOT NULL,
+      actor_user_id TEXT,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      entity_type TEXT,
+      entity_id TEXT,
+      is_read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(recipient_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(actor_user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+  `);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notif_recipient ON notifications(recipient_user_id);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notif_read ON notifications(recipient_user_id, is_read);`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notif_created ON notifications(created_at DESC);`);
   db.run(`ALTER TABLE content ADD COLUMN analysis_status TEXT DEFAULT 'confirmed';`, () => {});
 
   // Restaurants Table (Canonical Source)

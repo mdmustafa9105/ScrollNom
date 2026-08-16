@@ -2,10 +2,34 @@ import { dbAll, dbGet, dbRun } from '../db/database.js';
 import { db } from '../db/memoryStore.js';
 import { trackingService } from '../modules/delivery/tracking/trackingService.js';
 import { scrollnomAdapter } from '../modules/delivery/providers/scrollnomAdapter.js';
+import { createNotification } from '../services/notificationService.js';
 
 // Active status definitions for operational queue filtering
 const RESTAURANT_ACTIVE_STATUSES = ['restaurant_received', 'accepted', 'preparing', 'ready_for_pickup'];
 const RIDER_ACTIVE_STATUSES = ['ready_for_pickup', 'rider_assigned', 'picked_up', 'out_for_delivery'];
+
+// Map delivery status to Notification type, title, and body
+const getOrderNotificationConfig = (status, orderId, restaurantName) => {
+  switch (status) {
+    case 'accepted':
+      return { type: 'ORDER_ACCEPTED', title: 'Order Accepted! 🍳', body: `${restaurantName || 'Restaurant'} accepted order #${orderId}` };
+    case 'preparing':
+      return { type: 'ORDER_PREPARING', title: 'Kitchen Preparing Food! 🍲', body: `${restaurantName || 'Kitchen'} is preparing order #${orderId}` };
+    case 'ready_for_pickup':
+    case 'ready':
+      return { type: 'ORDER_READY', title: 'Order Ready for Pickup! 📦', body: `Order #${orderId} is packed and ready for delivery.` };
+    case 'rider_assigned':
+      return { type: 'RIDER_ASSIGNED', title: 'Rider Assigned! 🚴', body: `A delivery partner has been assigned to order #${orderId}` };
+    case 'picked_up':
+      return { type: 'ORDER_PICKED_UP', title: 'Order Picked Up! 🛵', body: `Rider has picked up order #${orderId} from ${restaurantName}` };
+    case 'out_for_delivery':
+      return { type: 'ORDER_OUT_FOR_DELIVERY', title: 'Out for Delivery! 🚚', body: `Your order #${orderId} is on the way!` };
+    case 'delivered':
+      return { type: 'ORDER_DELIVERED', title: 'Order Delivered! 🎉', body: `Order #${orderId} has been delivered. Enjoy your meal!` };
+    default:
+      return null;
+  }
+};
 
 // Get Restaurant Active Orders (filtered to kitchen-actionable statuses only)
 export const getRestaurantOrders = async (req, res, next) => {
@@ -156,6 +180,28 @@ export const updateDeliveryStatus = async (req, res, next) => {
     };
 
     trackingService.broadcast(deliveryId, updatePayload);
+
+    // Trigger Notification to Customer User
+    try {
+      const orderRow = await dbGet('SELECT user_id, restaurant_name FROM orders WHERE order_id = ?', [delivery.order_id]);
+      const customerUserId = orderRow ? orderRow.user_id : (delivery.user_id || 'u1');
+      const restaurantName = orderRow ? orderRow.restaurant_name : 'ScrollNom Partner';
+
+      const notifConfig = getOrderNotificationConfig(status, delivery.order_id, restaurantName);
+      if (notifConfig) {
+        await createNotification({
+          recipientUserId: customerUserId,
+          actorUserId: 'u_restaurant',
+          type: notifConfig.type,
+          title: notifConfig.title,
+          body: notifConfig.body,
+          entityType: 'order',
+          entityId: delivery.order_id
+        });
+      }
+    } catch (e) {
+      console.error('[ORDER STATUS NOTIF ERROR]', e.message);
+    }
 
     console.log(`[OPS CONTROLLER] Real-Time Delivery ${deliveryId} status updated to '${status}' -> Broadcasted to SSE clients.`);
 

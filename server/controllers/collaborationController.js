@@ -1,4 +1,5 @@
 import { dbAll, dbGet, dbRun } from '../db/database.js';
+import { createNotification } from '../services/notificationService.js';
 
 // POST /api/collaborations — Creator submits promotion request
 export const createCollaborationRequest = async (req, res, next) => {
@@ -21,7 +22,8 @@ export const createCollaborationRequest = async (req, res, next) => {
     }
 
     // Get creator details from SQLite users table or token
-    const creatorUser = await dbGet('SELECT * FROM users WHERE firebase_uid = ?', [creatorUserId]);
+    const creatorUser = await dbGet('SELECT * FROM users WHERE firebase_uid = ? OR id = ?', [creatorUserId, creatorUserId]);
+    const actualCreatorId = creatorUser?.id || creatorUserId;
     const creatorUsername = creatorUser?.username || req.user?.email?.split('@')[0] || 'creator';
     const creatorName = creatorUser?.display_name || req.user?.email?.split('@')[0] || 'Nommly Creator';
     const creatorAvatar = creatorUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
@@ -34,12 +36,30 @@ export const createCollaborationRequest = async (req, res, next) => {
         restaurant_id, restaurant_name, dish_id, dish_title, promotion_type, message, status
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     `, [
-      collabId, creatorUserId, creatorUsername, creatorName, creatorAvatar,
+      collabId, actualCreatorId, creatorUsername, creatorName, creatorAvatar,
       restaurantId, restaurantName || 'Paradise Biryani Palace', dishId || 'd1', dishTitle || 'Hyderabadi Dum Biryani',
       promotionType, message || 'Would love to review this dish on Nommly!'
     ]);
 
     const created = await dbGet('SELECT * FROM creator_collaborations WHERE id = ?', [collabId]);
+
+    // Send CREATOR_COLLAB_REQUEST notification to restaurant owner / recipient
+    try {
+      const restUser = await dbGet('SELECT id FROM users WHERE id = ? OR username = ?', [`u_${restaurantId}`, restaurantId]);
+      const restaurantUserId = restUser ? restUser.id : 'u_restaurant';
+
+      await createNotification({
+        recipientUserId: restaurantUserId,
+        actorUserId: actualCreatorId,
+        type: 'CREATOR_COLLAB_REQUEST',
+        title: 'New Collaboration Request!',
+        body: `@${creatorUsername} wants to promote ${restaurantName || 'your restaurant'}`,
+        entityType: 'collaboration',
+        entityId: collabId
+      });
+    } catch (e) {
+      console.error('[COLLAB NOTIF ERROR]', e.message);
+    }
 
     console.log(`[COLLABORATION] Creator @${creatorUsername} submitted request ${collabId} to Restaurant ${restaurantName}`);
 
@@ -64,11 +84,14 @@ export const getCreatorCollaborations = async (req, res, next) => {
       });
     }
 
+    const creatorUser = await dbGet('SELECT id FROM users WHERE firebase_uid = ? OR id = ?', [creatorUserId, creatorUserId]);
+    const actualCreatorId = creatorUser?.id || creatorUserId;
+
     const rows = await dbAll(`
       SELECT * FROM creator_collaborations
-      WHERE creator_user_id = ?
+      WHERE creator_user_id = ? OR creator_user_id = ?
       ORDER BY created_at DESC
-    `, [creatorUserId]);
+    `, [actualCreatorId, creatorUserId]);
 
     res.json({
       success: true,
@@ -128,6 +151,27 @@ export const updateCollaborationStatus = async (req, res, next) => {
     `, [status, id]);
 
     const updated = await dbGet('SELECT * FROM creator_collaborations WHERE id = ?', [id]);
+
+    // Send CREATOR_COLLAB_ACCEPTED or CREATOR_COLLAB_DECLINED notification to creator
+    try {
+      const notifType = status === 'accepted' ? 'CREATOR_COLLAB_ACCEPTED' : 'CREATOR_COLLAB_DECLINED';
+      const notifTitle = status === 'accepted' ? 'Collab Request Accepted! 🎉' : 'Collab Request Declined';
+      const notifBody = status === 'accepted'
+        ? `${updated.restaurant_name} accepted your promotion request for ${updated.dish_title}.`
+        : `${updated.restaurant_name} declined your promotion request.`;
+
+      await createNotification({
+        recipientUserId: updated.creator_user_id,
+        actorUserId: 'u_restaurant',
+        type: notifType,
+        title: notifTitle,
+        body: notifBody,
+        entityType: 'collaboration',
+        entityId: id
+      });
+    } catch (e) {
+      console.error('[COLLAB STATUS NOTIF ERROR]', e.message);
+    }
 
     console.log(`[COLLABORATION] Restaurant updated collaboration ${id} status to '${status}'`);
 

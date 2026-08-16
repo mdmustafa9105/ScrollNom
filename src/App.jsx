@@ -9,6 +9,7 @@ import { ProfilePage } from './pages/Profile/ProfilePage';
 import { AuthPage } from './pages/Auth/AuthPage';
 import { RestaurantOpsPage } from './pages/RestaurantOps/RestaurantOpsPage';
 import { RiderOpsPage } from './pages/RiderOps/RiderOpsPage';
+import { MessagesPage } from './pages/Messages/MessagesPage';
 import { ScrollNomLogoIcon } from './components/brand/IconSet';
 
 const MainContent = () => {
@@ -67,6 +68,7 @@ const MainContent = () => {
       {activeTab === 'explore' && <ExplorePage />}
       {activeTab === 'nommly' && <NommlyPage />}
       {activeTab === 'cart' && <CartPage />}
+      {activeTab === 'messages' && <MessagesPage />}
       {activeTab === 'profile' && <ProfilePage />}
       {activeTab === 'auth' && <AuthPage />}
     </AppLayout>

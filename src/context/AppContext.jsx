@@ -164,6 +164,137 @@ export const AppProvider = ({ children }) => {
     return null;
   };
 
+  // Notifications & Realtime Messaging State
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const [activeChatUser, setActiveChatUser] = useState(null);
+  const [selectedUserProfileUsername, setSelectedUserProfileUsername] = useState(null);
+
+  // Initial Notifications & Unread Counts Loader
+  const loadNotificationsAndUnreads = async () => {
+    if (!user.isLoggedIn) {
+      setNotifications([]);
+      setUnreadNotifCount(0);
+      setUnreadMessageCount(0);
+      return;
+    }
+    try {
+      const token = await getAuthToken();
+      if (!token) return;
+
+      const [notifRes, notifCountRes, msgCountRes] = await Promise.all([
+        fetch(`${API_BASE}/notifications`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/notifications/unread-count`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/messages/unread-count`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      if (notifRes.ok) {
+        const json = await notifRes.json();
+        setNotifications(json.data || []);
+      }
+      if (notifCountRes.ok) {
+        const json = await notifCountRes.json();
+        setUnreadNotifCount(json.data?.unreadCount || 0);
+      }
+      if (msgCountRes.ok) {
+        const json = await msgCountRes.json();
+        setUnreadMessageCount(json.data?.unreadCount || 0);
+      }
+    } catch (e) {
+      console.error('[LOAD NOTIFICATIONS ERROR]', e);
+    }
+  };
+
+  useEffect(() => {
+    loadNotificationsAndUnreads();
+  }, [user.isLoggedIn]);
+
+  // Real-time SSE Connection Listener for authenticated user
+  useEffect(() => {
+    if (!user.isLoggedIn) return;
+
+    let eventSource = null;
+    let isMounted = true;
+
+    const setupSSE = async () => {
+      try {
+        const token = await getAuthToken();
+        if (!token || !isMounted) return;
+
+        const sseUrl = `${API_BASE}/notifications/stream?token=${encodeURIComponent(token)}`;
+        eventSource = new EventSource(sseUrl);
+
+        eventSource.addEventListener('NOTIFICATION', (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            setNotifications(prev => [data, ...prev]);
+            setUnreadNotifCount(prev => prev + 1);
+            showToast(`🔔 ${data.title}: ${data.body}`, 'info');
+          } catch (err) {}
+        });
+
+        eventSource.addEventListener('MESSAGE_RECEIVED', (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            setUnreadMessageCount(prev => prev + 1);
+            showToast(`💬 @${data.senderUsername || 'Someone'}: ${data.body}`, 'info');
+          } catch (err) {}
+        });
+
+        eventSource.onerror = (err) => {
+          // Silent reconnect on network glitch
+        };
+      } catch (e) {}
+    };
+
+    setupSSE();
+
+    return () => {
+      isMounted = false;
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [user.isLoggedIn]);
+
+  const handleMarkNotifRead = async (notificationId) => {
+    try {
+      const token = await getAuthToken();
+      await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+      setUnreadNotifCount(prev => Math.max(0, prev - 1));
+    } catch (e) {}
+  };
+
+  const handleMarkAllNotifsRead = async () => {
+    try {
+      const token = await getAuthToken();
+      await fetch(`${API_BASE}/notifications/read-all`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadNotifCount(0);
+    } catch (e) {}
+  };
+
+  const openUserProfile = (username) => {
+    setSelectedUserProfileUsername(username);
+  };
+
+  const openChatWithUser = (username) => {
+    if (!user.isLoggedIn) {
+      promptAuth('Sign in to send messages');
+      return;
+    }
+    setActiveChatUser(username);
+    setActiveTab('messages');
+  };
+
   // Fetch real content videos from backend API
   const fetchNommlyVideos = async () => {
     try {
@@ -527,7 +658,19 @@ export const AppProvider = ({ children }) => {
         toggleCreatorMode,
         showUsernameModal,
         setShowUsernameModal,
-        getAuthToken
+        getAuthToken,
+        notifications,
+        unreadNotifCount,
+        unreadMessageCount,
+        activeChatUser,
+        setActiveChatUser,
+        selectedUserProfileUsername,
+        setSelectedUserProfileUsername,
+        handleMarkNotifRead,
+        handleMarkAllNotifsRead,
+        openUserProfile,
+        openChatWithUser,
+        loadNotificationsAndUnreads
       }}
     >
       {children}

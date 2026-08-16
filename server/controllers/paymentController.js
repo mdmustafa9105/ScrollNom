@@ -151,6 +151,26 @@ export const verifyPayment = async (req, res, next) => {
       console.error('[ANALYTICS ERROR] Failed to record confirmed order intent:', err);
     });
 
+    // Trigger ORDER_PLACED Notification to Restaurant
+    try {
+      const { createNotification } = await import('../services/notificationService.js');
+      const restId = updatedOrder.restaurantId || 'r1';
+      const restUser = await dbGet('SELECT id FROM users WHERE id = ? OR username = ?', [`u_${restId}`, restId]);
+      const restUserId = restUser ? restUser.id : 'u_restaurant';
+
+      await createNotification({
+        recipientUserId: restUserId,
+        actorUserId: req.user?.uid || order.userId,
+        type: 'ORDER_PLACED',
+        title: 'New Order Placed! 🛍️',
+        body: `Order #${updatedOrder.orderId} placed for ₹${updatedOrder.amount}.`,
+        entityType: 'order',
+        entityId: updatedOrder.orderId
+      });
+    } catch (e) {
+      console.error('[ORDER_PLACED NOTIF ERROR]', e.message);
+    }
+
     // Trigger Resend transactional email
     sendOrderConfirmation(updatedOrder).catch(err => {
       console.error('[EMAIL ERROR] Non-blocking email dispatch error:', err);

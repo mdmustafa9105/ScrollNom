@@ -1,8 +1,9 @@
 import { dbGet, dbAll, dbRun } from '../db/database.js';
+import { createNotification } from './notificationService.js';
 
 // Follow a User
 export const followUser = async (followerUid, targetUserId) => {
-  const follower = await dbGet('SELECT id FROM users WHERE firebase_uid = ? OR id = ?', [followerUid, followerUid]);
+  const follower = await dbGet('SELECT id, username, display_name FROM users WHERE firebase_uid = ? OR id = ?', [followerUid, followerUid]);
   if (!follower) throw new Error('Authenticated user profile not found.');
 
   if (follower.id === targetUserId) {
@@ -25,6 +26,21 @@ export const followUser = async (followerUid, targetUserId) => {
     INSERT OR IGNORE INTO follows (id, follower_user_id, following_user_id)
     VALUES (?, ?, ?)
   `, [followId, follower.id, target.id]);
+
+  // Trigger NEW_FOLLOWER Notification to target user
+  try {
+    await createNotification({
+      recipientUserId: target.id,
+      actorUserId: follower.id,
+      type: 'NEW_FOLLOWER',
+      title: 'New Follower!',
+      body: `@${follower.username || 'Someone'} started following you.`,
+      entityType: 'user',
+      entityId: follower.id
+    });
+  } catch (e) {
+    console.error('[FOLLOWER NOTIFICATION ERROR]', e.message);
+  }
 
   const followerCountRow = await dbGet('SELECT COUNT(*) as count FROM follows WHERE following_user_id = ?', [target.id]);
 

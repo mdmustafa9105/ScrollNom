@@ -3,22 +3,22 @@ import { db } from '../db/memoryStore.js';
 
 export const requireAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    let authHeader = req.headers.authorization;
+    let token;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split('Bearer ')[1]?.trim();
+    } else if (req.query && req.query.token) {
+      token = req.query.token.trim();
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         error: {
           code: 'UNAUTHORIZED',
-          message: 'Authentication required. Authorization header with Bearer token is missing.'
+          message: 'Authentication required. Authorization token is missing.'
         }
-      });
-    }
-
-    const token = authHeader.split('Bearer ')[1]?.trim();
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        error: { code: 'INVALID_TOKEN', message: 'Empty authentication token provided.' }
       });
     }
 
