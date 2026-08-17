@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { triggerRazorpayCheckout } from '../../services/razorpayService';
-import { ShoppingBag, ArrowLeft, Trash2, Plus, Minus, Users, CheckCircle2, ShieldCheck, AlertCircle, RefreshCw, XCircle, Bike, Navigation } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Trash2, Plus, Minus, Users, CheckCircle2, ShieldCheck, AlertCircle, RefreshCw, XCircle, Bike, Navigation, MapPin } from 'lucide-react';
 import { LiveTrackingModal } from '../../components/delivery/LiveTrackingModal';
 import { LiveOrderTrackingModal } from '../../components/orders/LiveOrderTrackingModal';
+import { MockRazorpayModal } from '../../components/payment/MockRazorpayModal';
+import { DeliveryMapModal } from '../../components/delivery/DeliveryMapModal';
+import 'leaflet/dist/leaflet.css';
 
 export const CartPage = () => {
   const {
@@ -19,7 +22,7 @@ export const CartPage = () => {
     showToast
   } = useApp();
 
-  const [deliveryAddress] = useState({
+  const [deliveryAddress, setDeliveryAddress] = useState({
     label: 'Home',
     street: 'Flat 402, Royal Palms, Jubilee Hills',
     area: 'Hyderabad, Telangana'
@@ -27,6 +30,7 @@ export const CartPage = () => {
 
   const [activeDeliveryId, setActiveDeliveryId] = useState(null);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const deliveryFee = subtotal > 0 ? 40 : 0;
@@ -53,6 +57,8 @@ export const CartPage = () => {
   };
 
   const [confirmedOrder, setConfirmedOrder] = useState(null);
+  const [showRazorpayModal, setShowRazorpayModal] = useState(false);
+  const [razorpayCheckoutCtx, setRazorpayCheckoutCtx] = useState(null);
 
   const handleCheckout = async () => {
     if (!user.isLoggedIn) {
@@ -84,7 +90,12 @@ export const CartPage = () => {
         items: orderItems,
         user,
         authToken: token,
+        onShowModal: ({ orderData, authHeaders, onPaymentDone }) => {
+          setRazorpayCheckoutCtx({ orderData, authHeaders, onPaymentDone, orderItems, finalPayable });
+          setShowRazorpayModal(true);
+        },
         onSuccess: (paymentData) => {
+          setShowRazorpayModal(false);
           showToast(`Order Confirmed! ID: ${paymentData.orderId}`, 'success');
           
           if (paymentData.deliveryId) {
@@ -112,6 +123,7 @@ export const CartPage = () => {
           }
         },
         onFailure: (err) => {
+          setShowRazorpayModal(false);
           showToast(`Payment failed or cancelled: ${err.message || 'You can retry checkout.'}`, 'warning');
         }
       });
@@ -421,16 +433,22 @@ export const CartPage = () => {
                 </div>
               </div>
 
-              {/* Delivery Location Pin */}
-              <div className="p-3 bg-brand-cream-card rounded-2xl border border-brand-cream-dark text-xs space-y-1">
-                <div className="flex items-center space-x-1.5 text-brand-teal font-bold">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Delivering to {deliveryAddress.label}</span>
+              {/* Delivery Location Pin — clickable to open map */}
+              <button
+                onClick={() => setShowMapModal(true)}
+                className="w-full p-3 bg-brand-cream-card rounded-2xl border border-brand-cream-dark text-xs space-y-1 hover:border-brand-teal/50 hover:bg-brand-teal/5 transition-all cursor-pointer text-left group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-brand-teal font-bold">
+                    <MapPin className="w-4 h-4" />
+                    <span>Delivering to {deliveryAddress.label}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-brand-coral group-hover:text-brand-teal transition-colors">CHANGE ›</span>
                 </div>
                 <p className="text-brand-charcoal-muted text-[11px] font-medium leading-tight">
                   {deliveryAddress.street}, {deliveryAddress.area}
                 </p>
-              </div>
+              </button>
 
               {/* Checkout Button */}
               <button
@@ -448,6 +466,38 @@ export const CartPage = () => {
           </div>
         </div>
       )}
+
+      {/* RAZORPAY CHECKOUT MODAL */}
+      <MockRazorpayModal
+        isOpen={showRazorpayModal}
+        onClose={() => setShowRazorpayModal(false)}
+        amount={razorpayCheckoutCtx?.finalPayable || cartTotal}
+        merchantName="ScrollNom Food Delivery"
+        orderId={razorpayCheckoutCtx?.orderData?.orderId}
+        userEmail={user?.email}
+        userName={user?.name}
+        userPhone={user?.phone}
+        onPaymentSuccess={(razorpayResponse) => {
+          if (razorpayCheckoutCtx?.onPaymentDone) {
+            razorpayCheckoutCtx.onPaymentDone(razorpayResponse);
+          }
+        }}
+      />
+
+      {/* DELIVERY MAP MODAL */}
+      <DeliveryMapModal
+        isOpen={showMapModal}
+        onClose={() => setShowMapModal(false)}
+        currentAddress={deliveryAddress}
+        onConfirmAddress={(addr) => {
+          setDeliveryAddress({
+            label: addr.label,
+            street: addr.street,
+            area: addr.area
+          });
+          showToast(`Delivery location set to ${addr.label}`, 'success');
+        }}
+      />
 
       {/* LIVE TRACKING MODAL */}
       {showTrackingModal && (

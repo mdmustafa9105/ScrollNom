@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { razorpay, getRazorpayConfig, isMockCredentials } from '../config/razorpay.js';
 import { db } from '../db/memoryStore.js';
+import { dbRun } from '../db/database.js';
 import { createOrderService } from '../services/orderService.js';
 import { sendOrderConfirmation } from '../services/emailService.js';
 import { recordConfirmedOrder } from '../services/analyticsService.js';
@@ -33,8 +34,10 @@ export const createPaymentOrder = async (req, res, next) => {
 
     let razorpayOrderId;
 
-    if (isMockCredentials) {
+    if (isMockCredentials || !razorpay) {
+      // No real Razorpay credentials — generate a mock order ID for demo/test flow
       razorpayOrderId = `order_mock_${Date.now()}`;
+      console.log(`[RAZORPAY MOCK] Generated mock order ID: ${razorpayOrderId} (no real credentials configured)`);
     } else {
       try {
         const razorpayOrder = await razorpay.orders.create({
@@ -50,7 +53,7 @@ export const createPaymentOrder = async (req, res, next) => {
         razorpayOrderId = razorpayOrder.id;
       } catch (err) {
         console.error('[RAZORPAY ERROR] Failed to create order via Razorpay SDK:', err);
-        razorpayOrderId = `order_test_${Date.now()}`;
+        razorpayOrderId = `order_mock_${Date.now()}`;
       }
     }
 
@@ -59,6 +62,11 @@ export const createPaymentOrder = async (req, res, next) => {
       razorpayOrderId,
       status: 'payment_pending'
     });
+
+    await dbRun(
+      'UPDATE orders SET razorpay_order_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?',
+      [razorpayOrderId, 'payment_pending', order.orderId]
+    ).catch(err => console.error('[SQLITE ORDER UPDATE ERROR]', err));
 
     res.json({
       success: true,
@@ -135,6 +143,11 @@ export const verifyPayment = async (req, res, next) => {
       status: 'confirmed',
       razorpayPaymentId: razorpay_payment_id
     });
+
+    await dbRun(
+      `UPDATE orders SET payment_status = ?, status = ?, razorpay_payment_id = ?, razorpay_order_id = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?`,
+      ['paid', 'confirmed', razorpay_payment_id, razorpay_order_id, order.orderId]
+    ).catch(err => console.error('[SQLITE ORDER UPDATE ERROR]', err));
 
     console.log(`[PAYMENT VERIFIED] Order ${order.orderId} marked as PAID for Firebase User ${req.user?.uid}`);
 
