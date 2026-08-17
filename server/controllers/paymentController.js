@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { razorpay, getRazorpayConfig, isMockCredentials } from '../config/razorpay.js';
 import { db } from '../db/memoryStore.js';
-import { dbRun } from '../db/database.js';
+import { dbRun, dbGet } from '../db/database.js';
 import { createOrderService } from '../services/orderService.js';
 import { sendOrderConfirmation } from '../services/emailService.js';
 import { recordConfirmedOrder } from '../services/analyticsService.js';
@@ -11,6 +11,33 @@ export const createPaymentOrder = async (req, res, next) => {
   try {
     const { orderId, items, foodOnFriend } = req.body;
     let order = orderId ? db.getOrder(orderId) : null;
+
+    if (!order && orderId) {
+      const row = await dbGet('SELECT * FROM orders WHERE order_id = ?', [orderId]);
+      if (row) {
+        let parsedItems = [];
+        try { parsedItems = JSON.parse(row.items_json); } catch (e) {}
+        order = {
+          orderId: row.order_id,
+          userId: row.user_id,
+          items: parsedItems,
+          restaurantName: row.restaurant_name,
+          subtotal: row.subtotal,
+          deliveryFee: row.delivery_fee,
+          taxes: row.taxes,
+          amount: row.amount,
+          amountPaise: row.amount_paise,
+          currency: row.currency || 'INR',
+          status: row.status,
+          paymentStatus: row.payment_status,
+          razorpayOrderId: row.razorpay_order_id,
+          razorpayPaymentId: row.razorpay_payment_id,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+        db.orders.set(order.orderId, order);
+      }
+    }
 
     if (!order) {
       if (!items || items.length === 0) {
@@ -119,7 +146,7 @@ export const verifyPayment = async (req, res, next) => {
       });
     }
 
-    // Locate order in database
+    // Locate order in database (memoryStore + SQLite fallback)
     let order = orderId ? db.getOrder(orderId) : null;
     if (!order) {
       for (const o of db.orders.values()) {
@@ -127,6 +154,33 @@ export const verifyPayment = async (req, res, next) => {
           order = o;
           break;
         }
+      }
+    }
+
+    if (!order) {
+      const row = await dbGet('SELECT * FROM orders WHERE order_id = ? OR razorpay_order_id = ?', [orderId, razorpay_order_id]);
+      if (row) {
+        let parsedItems = [];
+        try { parsedItems = JSON.parse(row.items_json); } catch (e) {}
+        order = {
+          orderId: row.order_id,
+          userId: row.user_id,
+          items: parsedItems,
+          restaurantName: row.restaurant_name,
+          subtotal: row.subtotal,
+          deliveryFee: row.delivery_fee,
+          taxes: row.taxes,
+          amount: row.amount,
+          amountPaise: row.amount_paise,
+          currency: row.currency || 'INR',
+          status: row.status,
+          paymentStatus: row.payment_status,
+          razorpayOrderId: row.razorpay_order_id,
+          razorpayPaymentId: row.razorpay_payment_id,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
+        db.orders.set(order.orderId, order);
       }
     }
 

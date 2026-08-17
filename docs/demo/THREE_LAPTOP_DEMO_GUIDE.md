@@ -18,14 +18,20 @@ Run one of the following commands on your main host machine to find your Local I
 
 ---
 
-## 🚀 Step 2: Start the Development Application Stack (Host Machine)
+## 🚀 Step 2: Start the Development Application Stack (Host Machine ONLY)
 
-### Unified Full-Stack Command (Recommended)
+> [!CAUTION]
+> **IMPORTANT FOR CLIENT LAPTOPS (Laptop 2 & Laptop 3)**:
+> - **DO NOT run `npm run dev` or `npm run dev:backend` on Laptop 2 or Laptop 3.**
+> - Running `npm run dev` on client laptops creates an isolated local database on that machine, causing split-brain behavior where orders placed by Customer will not appear on Restaurant/Rider screens.
+> - **ONLY Laptop 1 (Host Machine)** runs `npm run dev`.
+
+### Unified Full-Stack Command (Host Machine ONLY)
 ```bash
 npm run dev
 ```
 > [!IMPORTANT]
-> `npm run dev` automatically launches **BOTH** the Vite Frontend (Port 3000) and the Express Backend API (Port 5000) concurrently. Running this command guarantees that Google Authentication user sync (`POST /api/users/sync`), Razorpay webhooks, and live SSE telemetry are fully operational across all 3 laptops.
+> `npm run dev` on the Host Machine automatically launches **BOTH** the Vite Frontend (Port 3000) and the Express Backend API (Port 5000) concurrently. Running this command guarantees that Google Authentication user sync (`POST /api/users/sync`), Razorpay webhooks, and live SSE telemetry are fully operational across all laptops connected to the host's local network.
 
 - **Frontend Access**: `http://<LAN_IP>:3000`
 - **Backend API Access**: `http://<LAN_IP>:5000/api`
