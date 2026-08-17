@@ -1,10 +1,11 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { ScrollNomLogoIcon } from '../brand/IconSet';
-import { Home, Compass, ShoppingBag, User, MapPin, LogIn, UserCheck, Sparkles, Video, ShieldCheck } from 'lucide-react';
+import { NotificationBell } from '../notifications/NotificationBell';
+import { Home, Compass, ShoppingBag, User, MapPin, LogIn, UserCheck, Sparkles, Video, MessageSquare } from 'lucide-react';
 
 export const DesktopSidebar = () => {
-  const { activeTab, setActiveTab, cartItems, foodOnFriend, user, promptAuth } = useApp();
+  const { activeTab, setActiveTab, cartItems, foodOnFriend, user, promptAuth, unreadMessageCount } = useApp();
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -13,6 +14,7 @@ export const DesktopSidebar = () => {
     { id: 'explore', label: 'Explore & Search', icon: Compass },
     { id: 'nommly', label: 'Nommly Videos', icon: Video, badge: 'LIVE' },
     { id: 'cart', label: 'Cart & Checkout', icon: ShoppingBag, count: totalCartCount, isSplit: foodOnFriend.enabled },
+    { id: 'messages', label: 'Messages', icon: MessageSquare, count: unreadMessageCount },
     { id: 'profile', label: 'My Account', icon: User },
   ];
 
@@ -26,20 +28,23 @@ export const DesktopSidebar = () => {
       {/* Top Brand Section */}
       <div className="space-y-5">
         
-        {/* Logo & Unroll Animation */}
-        <div
-          onClick={() => setActiveTab('home')}
-          className="flex items-center space-x-3 cursor-pointer group p-1"
-        >
-          <ScrollNomLogoIcon className="w-10 h-10 transform group-hover:scale-110 transition-transform" animate={true} />
-          <div className="flex flex-col">
-            <span className="font-extrabold text-2xl tracking-tight text-brand-coral font-display leading-none">
-              scrollnom
-            </span>
-            <span className="text-[10px] font-extrabold tracking-widest uppercase text-brand-teal mt-0.5">
-              Discover • Nom • Order
-            </span>
+        {/* Logo & Notification Bell */}
+        <div className="flex items-center justify-between p-1">
+          <div
+            onClick={() => setActiveTab('home')}
+            className="flex items-center space-x-3 cursor-pointer group"
+          >
+            <ScrollNomLogoIcon className="w-10 h-10 transform group-hover:scale-110 transition-transform" animate={true} />
+            <div className="flex flex-col">
+              <span className="font-extrabold text-2xl tracking-tight text-brand-coral font-display leading-none">
+                scrollnom
+              </span>
+              <span className="text-[10px] font-extrabold tracking-widest uppercase text-brand-teal mt-0.5">
+                Discover • Nom • Order
+              </span>
+            </div>
           </div>
+          <NotificationBell />
         </div>
 
         {/* Location Selector Card */}

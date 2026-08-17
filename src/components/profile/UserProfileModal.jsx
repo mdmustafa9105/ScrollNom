@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { API_BASE } from '../../config/api';
-import { X, UserPlus, UserCheck, ShieldCheck, Sparkles, Award } from 'lucide-react';
+import { X, UserPlus, UserCheck, ShieldCheck, Sparkles, Award, MessageSquare } from 'lucide-react';
 
 export const UserProfileModal = ({ username, isOpen, onClose }) => {
-  const { user, getAuthToken, showToast, setActiveTab, setActiveVideoIndex, videos } = useApp();
+  const { user, getAuthToken, showToast, setActiveTab, setActiveVideoIndex, videos, openChatWithUser, promptAuth } = useApp();
   const [profile, setProfile] = useState(null);
   const [creatorVideos, setCreatorVideos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,9 +56,20 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
     onClose();
   };
 
+  const handleMessageClick = () => {
+    if (!user.isLoggedIn) {
+      promptAuth('Sign in to message this user');
+      return;
+    }
+    if (profile) {
+      openChatWithUser(profile.username || profile.id);
+      onClose();
+    }
+  };
+
   const handleToggleFollow = async () => {
     if (!user.isLoggedIn) {
-      showToast('Please sign in to follow users!', 'info');
+      promptAuth('Sign in to follow users');
       return;
     }
     if (!profile || profile.isSelf) return;
@@ -149,35 +160,46 @@ export const UserProfileModal = ({ username, isOpen, onClose }) => {
               )}
             </div>
 
-            {/* Follow / Edit Button */}
+            {/* Follow & Message Buttons */}
             {!loading && profile && (
-              <div>
+              <div className="flex items-center space-x-2">
                 {profile.isSelf ? (
                   <span className="text-xs font-semibold text-charcoal-muted bg-cream-bg px-3 py-1.5 rounded-full border border-warm-grey">
                     Your Profile
                   </span>
                 ) : (
-                  <button
-                    onClick={handleToggleFollow}
-                    disabled={followLoading}
-                    className={`px-5 py-2 rounded-xl text-sm font-bold shadow-button transition-all flex items-center space-x-1.5 ${
-                      profile.isFollowing
-                        ? 'bg-cream-dark text-charcoal hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-warm-grey'
-                        : 'bg-brand-coral text-white hover:bg-brand-coral-hover'
-                    }`}
-                  >
-                    {profile.isFollowing ? (
-                      <>
-                        <UserCheck className="w-4 h-4 text-brand-teal" />
-                        <span>Following</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        <span>Follow</span>
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <button
+                      onClick={handleMessageClick}
+                      className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-brand-teal text-white hover:bg-brand-teal/90 transition-all flex items-center space-x-1 shadow-xs"
+                      title="Send Message"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Message</span>
+                    </button>
+
+                    <button
+                      onClick={handleToggleFollow}
+                      disabled={followLoading}
+                      className={`px-4 py-2 rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center space-x-1.5 ${
+                        profile.isFollowing
+                          ? 'bg-cream-dark text-charcoal hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-warm-grey'
+                          : 'bg-brand-coral text-white hover:bg-brand-coral-hover'
+                      }`}
+                    >
+                      {profile.isFollowing ? (
+                        <>
+                          <UserCheck className="w-3.5 h-3.5 text-brand-teal" />
+                          <span>Following</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-3.5 h-3.5" />
+                          <span>Follow</span>
+                        </>
+                      )}
+                    </button>
+                  </>
                 )}
               </div>
             )}

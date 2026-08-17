@@ -1,7 +1,9 @@
 import { db } from '../db/memoryStore.js';
+import { dbGet } from '../db/database.js';
 import { sendFoodOnFriendRequest } from '../services/emailService.js';
+import { createNotification } from '../services/notificationService.js';
 
-export const createSplitRequest = (req, res, next) => {
+export const createSplitRequest = async (req, res, next) => {
   try {
     const { orderId, friendName, friendEmail, totalAmount, organizerContribution, requestedContribution } = req.body;
 
@@ -21,6 +23,9 @@ export const createSplitRequest = (req, res, next) => {
       });
     }
 
+    const organizerUser = await dbGet('SELECT * FROM users WHERE firebase_uid = ? OR id = ?', [organizerId, organizerId]);
+    const organizerUsername = organizerUser?.username || req.user?.email?.split('@')[0] || 'Friend';
+
     const request = db.createFoodOnFriendRequest({
       orderId,
       organizerId,
@@ -32,6 +37,31 @@ export const createSplitRequest = (req, res, next) => {
     });
 
     console.log(`[FOOD ON FRIEND] Created Backend Request ${request.requestId} for Organizer ${organizerId}`);
+
+    // Find friend user if registered by email or username
+    let targetFriendUser = null;
+    if (friendEmail) {
+      targetFriendUser = await dbGet('SELECT id FROM users WHERE email = ?', [friendEmail]);
+    }
+    if (!targetFriendUser && friendName) {
+      targetFriendUser = await dbGet('SELECT id FROM users WHERE LOWER(username) = ?', [friendName.toLowerCase()]);
+    }
+    const recipientUserId = targetFriendUser ? targetFriendUser.id : (request.friendId || 'fb_user_b');
+
+    // Trigger FOOD_ON_FRIEND_REQUEST Notification to invited friend
+    try {
+      await createNotification({
+        recipientUserId: recipientUserId,
+        actorUserId: organizerUser?.id || organizerId,
+        type: 'FOOD_ON_FRIEND_REQUEST',
+        title: 'Food on Friend Request! 🍕',
+        body: `@${organizerUsername} requested ₹${requestedContribution} for split order #${orderId || '101'}.`,
+        entityType: 'food_on_friend',
+        entityId: request.requestId
+      });
+    } catch (e) {
+      console.error('[FOOD ON FRIEND NOTIF ERROR]', e.message);
+    }
 
     // Trigger Resend email to invited friend
     sendFoodOnFriendRequest(request).catch(err => {
@@ -47,7 +77,7 @@ export const createSplitRequest = (req, res, next) => {
   }
 };
 
-export const updateSplitStatus = (req, res, next) => {
+export const updateSplitStatus = async (req, res, next) => {
   try {
     const { requestId } = req.params;
     const { status } = req.body;
@@ -86,6 +116,29 @@ export const updateSplitStatus = (req, res, next) => {
     }
 
     const updated = db.updateFoodOnFriendStatus(requestId, status);
+
+    // Trigger notification to organizer when friend accepts or declines
+    if (status === 'accepted' || status === 'declined') {
+      try {
+        const notifType = status === 'accepted' ? 'FOOD_ON_FRIEND_ACCEPTED' : 'FOOD_ON_FRIEND_DECLINED';
+        const notifTitle = status === 'accepted' ? 'Food on Friend Accepted! 🎉' : 'Food on Friend Declined';
+        const notifBody = status === 'accepted'
+          ? `${existingRequest.friendName || 'Your friend'} accepted the split request for ₹${existingRequest.requestedContribution}.`
+          : `${existingRequest.friendName || 'Your friend'} declined the split request.`;
+
+        await createNotification({
+          recipientUserId: existingRequest.organizerId,
+          actorUserId: currentUserId,
+          type: notifType,
+          title: notifTitle,
+          body: notifBody,
+          entityType: 'food_on_friend',
+          entityId: requestId
+        });
+      } catch (e) {
+        console.error('[FOOD ON FRIEND STATUS NOTIF ERROR]', e.message);
+      }
+    }
 
     console.log(`[FOOD ON FRIEND] Request ${requestId} status updated to '${status}' by User ${currentUserId}`);
 

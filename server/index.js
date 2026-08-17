@@ -15,6 +15,8 @@ import discoveryRoutes from './routes/discoveryRoutes.js';
 import collaborationRoutes from './routes/collaborationRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import restaurantRoutes from './routes/restaurantRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import path from 'path';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -62,6 +64,8 @@ app.use('/api', paymentRoutes);
 app.use('/api', foodOnFriendRoutes);
 app.use('/api', collaborationRoutes);
 app.use('/api', uploadRoutes);
+app.use('/api', messageRoutes);
+app.use('/api', notificationRoutes);
 app.use('/api', webhookRoutes);
 
 
